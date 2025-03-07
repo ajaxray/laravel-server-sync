@@ -1,0 +1,52 @@
+{
+    "name": "ajaxray/laravel-server-sync",
+    "description": "A Laravel package to easily sync your production database and files to your local environment",
+    "keywords": [
+        "laravel",
+        "sync",
+        "database",
+        "files",
+        "production",
+        "deployment"
+    ],
+    "type": "library",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Anis Uddin Ahmad",
+            "email": "anis.programmer@gmail.com"
+        }
+    ],
+    "require": {
+        "php": "^8.1",
+        "illuminate/support": "^10.0|^11.0",
+        "illuminate/console": "^10.0|^11.0",
+        "spatie/laravel-package-tools": "^1.16"
+    },
+    "require-dev": {
+        "orchestra/testbench": "^8.0|^9.0",
+        "phpunit/phpunit": "^10.5"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ajaxray\\ServerSync\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Ajaxray\\ServerSync\\Tests\\": "tests/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Ajaxray\\ServerSync\\ServerSyncServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "sort-packages": true
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+} 

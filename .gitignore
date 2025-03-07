@@ -1,0 +1,62 @@
+/vendor/
+/node_modules/
+composer.lock
+package-lock.json
+yarn.lock
+.phpunit.result.cache
+.phpunit.cache/
+coverage/
+.php-cs-fixer.cache
+.php_cs.cache
+
+# IDE & Editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+*.code-workspace
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Laravel specific
+storage/*.key
+.env
+.env.backup
+.env.*.local
+Homestead.json
+Homestead.yaml
+
+# Testing
+phpunit.xml
+.phpunit.result.cache
+.coverage/
+coverage.xml
+*.lcov
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build directories
+/build/
+/dist/
+/public/storage
+/public/hot
+
+# Local development
+/.vagrant
+.php_cs
+.php_cs.dist
+.phpstorm.meta.php
+_ide_helper.php
+_ide_helper_models.php
+.phpstorm.meta.php 
