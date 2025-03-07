@@ -29,8 +29,19 @@ return [
         'tables' => [
             'exclude' => [
                 // Tables to exclude from sync, e.g.:
-                // 'migrations',
                 // 'password_reset_tokens',
+                // 'failed_jobs',
+                // 'jobs',
+                // 'sessions',
+                // 'personal_access_tokens',
+                // 'visitor',
+                // 'activity_log',
+                // 'audit_logs',
+                // 'cache',
+                // 'notifications',
+                // 'telescope_entries',
+                // 'telescope_entries_tags',
+                // 'telescope_monitoring',
             ],
         ],
     ],

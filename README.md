@@ -3,10 +3,8 @@
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/ajaxray/laravel-server-sync.svg?style=flat-square)](https://packagist.org/packages/ajaxray/laravel-server-sync)
 [![Total Downloads](https://img.shields.io/packagist/dt/ajaxray/laravel-server-sync.svg?style=flat-square)](https://packagist.org/packages/ajaxray/laravel-server-sync)
 [![License](https://img.shields.io/packagist/l/ajaxray/laravel-server-sync.svg?style=flat-square)](https://packagist.org/packages/ajaxray/laravel-server-sync)
-[![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/ajaxray/laravel-server-sync/tests.yml?branch=main&label=tests&style=flat-square)](https://github.com/ajaxray/laravel-server-sync/actions/workflows/tests.yml)
-[![Packagist Stability Rating](https://img.shields.io/packagist/stability/ajaxray/laravel-server-sync?style=flat-square)](https://packagist.org/packages/ajaxray/laravel-server-sync)
 
-A Laravel package to easily sync your production database and files to your local environment. Perfect for debugging production issues or keeping your local environment up to date with production data.
+A Laravel package to easily sync your production/staging database and storage files to your local environment. Perfect for debugging production issues or keeping your local environment up to date with production data.
 
 > **Note**: This package is now stable and ready for production use. It supports Laravel 10.x and 11.x.
 
@@ -31,6 +29,11 @@ A Laravel package to easily sync your production database and files to your loca
 
 ```bash
 composer require ajaxray/laravel-server-sync
+```
+
+To install for dev environments
+```bash
+composer require --dev ajaxray/laravel-server-sync
 ```
 
 After installation, publish the configuration file:
