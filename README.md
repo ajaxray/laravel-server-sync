@@ -97,13 +97,18 @@ php artisan sync:pull --delete
 ```
 
 ### Server Configuration Options
+By default, it'll take host, user, path etc. from the production server definition in config file.
+
+Also we can specify which remote server definition to use (see config file), if we have defined multiple servers. If any config is specified as inline option, it'll get precidence over config values.
 
 ```bash
+php artisan sync:pull --remote=staging
+
 # Override server details inline
 php artisan sync:pull --host=prod.example.com --user=deploy --path=/var/www/app
 
-# All options can be combined
-php artisan sync:pull --host=prod.example.com --user=deploy --exclude-tables=logs --delete
+# All options can be specified inline to overwrite config values
+php artisan sync:pull --host=prod.example.com --user=deploy --exclude-tables=logs,migrations 
 ```
 
 ### Safety Features
@@ -146,9 +151,6 @@ php artisan sync:pull --force
 
 Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
 
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Credits
 

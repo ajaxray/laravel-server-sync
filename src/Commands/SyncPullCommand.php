@@ -3,8 +3,6 @@
 namespace Ajaxray\ServerSync\Commands;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\App;
 use Symfony\Component\Process\Process;
@@ -15,6 +13,7 @@ class SyncPullCommand extends Command
         {--host= : Production server hostname or IP}
         {--user= : SSH username for production server}
         {--path= : Path to production installation}
+        {--remote=production : Remote server configuration to use (e.g., production, staging)}
         {--skip-db : Skip database sync}
         {--skip-files : Skip files sync}
         {--delete : Remove files that don\'t exist in production}
@@ -24,22 +23,28 @@ class SyncPullCommand extends Command
 
     protected $description = 'Pull and sync database and files from production to local environment';
 
-    protected string $prodHost;
-    protected string $prodUser;
-    protected string $prodPath;
+    protected string $remoteHost;
+    protected string $remoteUser;
+    protected string $remotePath;
 
     public function handle()
-    {
+    {        
         if (App::environment('production') && !$this->option('force')) {
             $this->error('This command cannot be run in production environment. Use --force to override.');
             return 1;
         }
 
-        $this->prodHost = $this->option('host') ?: Config::get('server-sync.production.host');
-        $this->prodUser = $this->option('user') ?: Config::get('server-sync.production.user');
-        $this->prodPath = $this->option('path') ?: Config::get('server-sync.production.path');
+        $remote = $this->option('remote');
+        
+        $this->remoteHost = $this->option('host') ?: Config::get("server-sync.$remote.host");
+        $this->remoteUser = $this->option('user') ?: Config::get("server-sync.$remote.user");
+        $this->remotePath = $this->option('path') ?: Config::get("server-sync.$remote.path");
 
-        if (!$this->validateRequirements()) {
+        if ($remote) {
+            $this->info("Pulling from {$this->remoteHost} as {$this->remoteUser}");            
+        }
+
+        if (!$this->validateRequirements()) {            
             return 1;
         }
 
@@ -57,7 +62,7 @@ class SyncPullCommand extends Command
 
     protected function validateRequirements(): bool
     {
-        if (!$this->prodHost || !$this->prodUser || !$this->prodPath) {
+        if (!$this->remoteHost || !$this->remoteUser || !$this->remotePath) {
             $this->error('Production server details are required. Please provide --host, --user and --path options or configure them in config/server-sync.php');
             return false;
         }
@@ -75,12 +80,14 @@ class SyncPullCommand extends Command
         }
 
         // Test SSH connection
-        $testConnection = Process::fromShellCommandline("ssh -q {$this->prodUser}@{$this->prodHost} exit");
-        $testConnection->run();
-        
-        if (!$testConnection->isSuccessful()) {
-            $this->error('Failed to connect to production server. Please check your SSH configuration.');
-            return false;
+        if (!$this->option('skip-db') || !$this->option('skip-files')) {
+            $testConnection = Process::fromShellCommandline("ssh -q {$this->remoteUser}@{$this->remoteHost} exit");
+            $testConnection->run();
+
+            if (!$testConnection->isSuccessful()) {
+                $this->error('Failed to connect to production server. Please check your SSH configuration.');
+                return false;
+            }
         }
 
         return true;
@@ -165,9 +172,9 @@ class SyncPullCommand extends Command
                 'rsync -avz --compress %s %s --progress %s@%s:%s/%s/ %s/',
                 $deleteFlag,
                 $excludeFlags,
-                $this->prodUser,
-                $this->prodHost,
-                $this->prodPath,
+                $this->remoteUser,
+                $this->remoteHost,
+                $this->remotePath,
                 $relativePath,
                 $path
             );
@@ -193,9 +200,9 @@ class SyncPullCommand extends Command
         $this->info('Retrieving production database credentials...');
         $sshCommand = sprintf(
             'ssh %s@%s "cd %s && grep -E \'^DB_(HOST|DATABASE|USERNAME|PASSWORD)=\' .env"',
-            $this->prodUser,
-            $this->prodHost,
-            $this->prodPath
+            $this->remoteUser,
+            $this->remoteHost,
+            $this->remotePath
         );
         
         $process = Process::fromShellCommandline($sshCommand);
@@ -228,8 +235,8 @@ class SyncPullCommand extends Command
     {
         $command = sprintf(
             'ssh %s@%s "mysqldump -h%s -u%s -p\'%s\' %s',
-            $this->prodUser,
-            $this->prodHost,
+            $this->remoteUser,
+            $this->remoteHost,
             $dbConfig['host'],
             $dbConfig['username'],
             $dbConfig['password'],
@@ -254,7 +261,7 @@ class SyncPullCommand extends Command
 
         // Create a temporary file on the remote server, then download it
         $remoteTempFile = '/tmp/temp_dump.sql';
-        $command .= " > {$remoteTempFile}\" && scp {$this->prodUser}@{$this->prodHost}:{$remoteTempFile} {$tempFile} && ssh {$this->prodUser}@{$this->prodHost} \"rm {$remoteTempFile}\"";
+        $command .= " > {$remoteTempFile}\" && scp {$this->remoteUser}@{$this->remoteHost}:{$remoteTempFile} {$tempFile} && ssh {$this->remoteUser}@{$this->remoteHost} \"rm {$remoteTempFile}\"";
         
         return $command;
     }

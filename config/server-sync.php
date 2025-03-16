@@ -10,11 +10,20 @@ return [
     | Configure your production server details here or in your .env file.
     |
     */
+    // Default production server configuration
     'production' => [
         'host' => env('PROD_SSH_HOST', ''),
         'user' => env('PROD_SSH_USER', ''),
         'path' => env('PROD_SSH_PATH', ''),
     ],
+
+    // Staging server configuration. Uncomment to use. 
+    // Or add any other environments you need.
+    // 'staging' => [
+    //     'host' => env('STAGING_SSH_HOST', ''),
+    //     'user' => env('STAGING_SSH_USER', ''),
+    //     'path' => env('STAGING_SSH_PATH', ''),
+    // ],
 
     /*
     |--------------------------------------------------------------------------
