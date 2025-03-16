@@ -8,6 +8,9 @@ A Laravel package to easily sync your production/staging database and storage fi
 
 > **Note**: This package is now stable and ready for production use. It supports Laravel 10.x and 11.x.
 
+![Laravel Server Sync Banner](/arts/laravel_server_sync_banner.jpg)
+
+
 ## Features
 
 - 🔄 One-command sync of both database and files
