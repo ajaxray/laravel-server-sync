@@ -13,6 +13,7 @@ class SyncPullCommand extends Command
         {--host= : Production server hostname or IP}
         {--user= : SSH username for production server}
         {--path= : Path to production installation}
+        {--key= : SSH private key file path}
         {--remote=production : Remote server configuration to use (e.g., production, staging)}
         {--skip-db : Skip database sync}
         {--skip-files : Skip files sync}
@@ -26,6 +27,7 @@ class SyncPullCommand extends Command
     protected string $remoteHost;
     protected string $remoteUser;
     protected string $remotePath;
+    protected ?string $sshKeyPath;
 
     public function handle()
     {        
@@ -39,6 +41,7 @@ class SyncPullCommand extends Command
         $this->remoteHost = $this->option('host') ?: Config::get("server-sync.$remote.host");
         $this->remoteUser = $this->option('user') ?: Config::get("server-sync.$remote.user");
         $this->remotePath = $this->option('path') ?: Config::get("server-sync.$remote.path");
+        $this->sshKeyPath = $this->option('key') ?: Config::get("server-sync.$remote.key");
 
         if ($remote) {
             $this->info("Pulling from {$this->remoteHost} as {$this->remoteUser}");            
@@ -81,7 +84,8 @@ class SyncPullCommand extends Command
 
         // Test SSH connection
         if (!$this->option('skip-db') || !$this->option('skip-files')) {
-            $testConnection = Process::fromShellCommandline("ssh -q {$this->remoteUser}@{$this->remoteHost} exit");
+            $sshOptions = $this->getSshOptions();
+            $testConnection = Process::fromShellCommandline("ssh -q{$sshOptions} {$this->remoteUser}@{$this->remoteHost} exit");
             $testConnection->run();
 
             if (!$testConnection->isSuccessful()) {
@@ -168,10 +172,14 @@ class SyncPullCommand extends Command
         foreach (Config::get('server-sync.files.paths', [storage_path('app')]) as $path) {
             $relativePath = str_replace(base_path() . '/', '', $path);
             
+            $sshOptions = $this->getSshOptions();
+            $rsyncSshOptions = $sshOptions ? "-e 'ssh{$sshOptions}'" : '';
+            
             $rsyncCommand = sprintf(
-                'rsync -avz --compress %s %s --progress %s@%s:%s/%s/ %s/',
+                'rsync -avz --compress %s %s %s --progress %s@%s:%s/%s/ %s/',
                 $deleteFlag,
                 $excludeFlags,
+                $rsyncSshOptions,
                 $this->remoteUser,
                 $this->remoteHost,
                 $this->remotePath,
@@ -198,8 +206,10 @@ class SyncPullCommand extends Command
     protected function getProductionDatabaseConfig(): ?array
     {
         $this->info('Retrieving production database credentials...');
+        $sshOptions = $this->getSshOptions();
         $sshCommand = sprintf(
-            'ssh %s@%s "cd %s && grep -E \'^DB_(HOST|DATABASE|USERNAME|PASSWORD)=\' .env"',
+            'ssh%s %s@%s "cd %s && grep -E \'^DB_(HOST|DATABASE|USERNAME|PASSWORD)=\' .env"',
+            $sshOptions,
             $this->remoteUser,
             $this->remoteHost,
             $this->remotePath
@@ -233,8 +243,10 @@ class SyncPullCommand extends Command
 
     protected function buildMysqlDumpCommand(array $dbConfig, string $tempFile): string
     {
+        $sshOptions = $this->getSshOptions();
         $command = sprintf(
-            'ssh %s@%s "mysqldump -h%s -u%s -p\'%s\' %s',
+            'ssh%s %s@%s "mysqldump -h%s -u%s -p\'%s\' %s',
+            $sshOptions,
             $this->remoteUser,
             $this->remoteHost,
             $dbConfig['host'],
@@ -261,7 +273,7 @@ class SyncPullCommand extends Command
 
         // Create a temporary file on the remote server, then download it
         $remoteTempFile = '/tmp/temp_dump.sql';
-        $command .= " > {$remoteTempFile}\" && scp {$this->remoteUser}@{$this->remoteHost}:{$remoteTempFile} {$tempFile} && ssh {$this->remoteUser}@{$this->remoteHost} \"rm {$remoteTempFile}\"";
+        $command .= " > {$remoteTempFile}\" && scp{$sshOptions} {$this->remoteUser}@{$this->remoteHost}:{$remoteTempFile} {$tempFile} && ssh{$sshOptions} {$this->remoteUser}@{$this->remoteHost} \"rm {$remoteTempFile}\"";
         
         return $command;
     }
@@ -271,5 +283,14 @@ class SyncPullCommand extends Command
         $process = Process::fromShellCommandline("which $command");
         $process->run();
         return $process->isSuccessful();
+    }
+
+    protected function getSshOptions(): string
+    {
+        $options = '';
+        if ($this->sshKeyPath) {
+            $options .= " -i {$this->sshKeyPath}";
+        }
+        return $options;
     }
 } 

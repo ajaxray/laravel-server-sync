@@ -55,6 +55,7 @@ Add these to your `.env` file:
 PROD_SSH_HOST=your-production-server.com
 PROD_SSH_USER=your-ssh-username
 PROD_SSH_PATH=/path/to/laravel
+PROD_SSH_KEY=/path/to/your/private/key
 ```
 
 ### Configuration File
@@ -65,6 +66,33 @@ The published config file `config/server-sync.php` allows you to:
 - Exclude specific tables from database sync
 - Configure file sync paths and exclusions
 - Customize dump location
+
+### SSH Key Authentication
+
+For enhanced security, you can specify SSH private key files for authentication:
+
+**Via Environment Variables:**
+```env
+PROD_SSH_KEY=/home/user/.ssh/production_key
+STAGING_SSH_KEY=/home/user/.ssh/staging_key
+```
+
+**Via Command Line:**
+```bash
+php artisan sync:pull --key=/path/to/private/key
+```
+
+**Via Configuration File:**
+```php
+'production' => [
+    'host' => 'prod.example.com',
+    'user' => 'deploy',
+    'path' => '/var/www/app',
+    'key' => '/home/user/.ssh/production_key',
+],
+```
+
+> **Note**: Ensure your private key file has proper permissions (600) and that the corresponding public key is added to the server's `~/.ssh/authorized_keys` file.
 
 ## Usage
 
@@ -110,8 +138,11 @@ php artisan sync:pull --remote=staging
 # Override server details inline
 php artisan sync:pull --host=prod.example.com --user=deploy --path=/var/www/app
 
+# Specify SSH key file for authentication
+php artisan sync:pull --key=/path/to/private/key
+
 # All options can be specified inline to overwrite config values
-php artisan sync:pull --host=prod.example.com --user=deploy --exclude-tables=logs,migrations 
+php artisan sync:pull --host=prod.example.com --user=deploy --key=~/.ssh/production_key --exclude-tables=logs,migrations 
 ```
 
 ### Safety Features
@@ -126,7 +157,8 @@ php artisan sync:pull --force
 ## Security
 
 - Uses SSH for secure file transfer
-- Requires key-based authentication
+- Supports SSH key-based authentication (recommended)
+- Can specify custom SSH private key files via `--key` option or configuration
 - Temporary files are automatically cleaned up
 - Database credentials are never stored locally
 
@@ -135,8 +167,9 @@ php artisan sync:pull --force
 ### SSH Connection Issues
 
 - Verify SSH key-based authentication is set up
-- Check if you can manually SSH into the server
-- Ensure proper permissions for the SSH user
+- Check if you can manually SSH into the server using the key: `ssh -i /path/to/key user@host`
+- Ensure proper permissions for the SSH user and private key file (600 for key file)
+- Use `--key` option or configure SSH key path in config file if using custom key location
 
 ### Database Sync Issues
 

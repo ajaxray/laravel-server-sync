@@ -15,6 +15,7 @@ return [
         'host' => env('PROD_SSH_HOST', ''),
         'user' => env('PROD_SSH_USER', ''),
         'path' => env('PROD_SSH_PATH', ''),
+        'key' => env('PROD_SSH_KEY', ''), // Path to SSH private key file
     ],
 
     // Staging server configuration. Uncomment to use. 
@@ -23,6 +24,7 @@ return [
     //     'host' => env('STAGING_SSH_HOST', ''),
     //     'user' => env('STAGING_SSH_USER', ''),
     //     'path' => env('STAGING_SSH_PATH', ''),
+    //     'key' => env('STAGING_SSH_KEY', ''), // Path to SSH private key file
     // ],
 
     /*
